@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static' , filename='css/login.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static' , filename='plugins/bootstrap/css/bootstrap.min.css')}}">
+</head>
+<body>
+    <div class="container">
+        <div class="info">
+            <h1>Factura Feliz</h1><span>Sistema Web de Facturacion Electronica ;)
+        </div>
+    </div>
+    <div class="form">
+    <div class="thumbnail"><img src="{{ url_for('static' , filename='img/pig_login.png')}}"/></div>
+        <form class="login-form" method="post" action="/login">
+            {%from "_macro.html" import render_field%}
+            {{render_field(form.username)}}
+            {{render_field(form.password)}}
+            <button>Entrar</button>
+            <p class="message">¿No estas registrado? </p>
+            <p class="message">Contacta al administrador del sistema</p>
+        </form>
+    </div>
+</body>
+</html>

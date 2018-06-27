@@ -1,0 +1,183 @@
+{% extends 'base/base.html' %}
+{% block title %} {{title}} {% endblock %}
+{% block content %}
+        <div class="row">
+            <div class="col-xs-36 col-sm-18 col-md-12">
+                <h3>Catalogo de productos</h3>                
+            </div>
+        </div>
+		<div class="row">
+			<div class="col-xs-12 col-sm-6 col-md-4">
+				<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#capturaProducto" id="btnAdd">Capturar producto</button>
+			</div>
+  			<div class="col-xs-12 col-sm-6 col-md-4">
+  				<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#buscarProducto" id="btnSearch">Buscar producto</button>
+  			</div>
+  			<div class="col-xs-12 col-sm-6 col-md-4">
+  				<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#mostrarProductos" id="mostrarP">Mostrar producto</button>
+  			</div>
+		</div>
+		<!--Ventanas Modales -->
+		<div class="modal fade" id="capturaProducto" role="dialog" data-backdrop="static" data-keyboard="false">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+          				<h4 class="modal-title">Captura Producto</h4>
+          				<button type="button" class="close" data-dismiss="modal">&times;</button>
+        			</div>
+        			<div class="modal-body">
+                        <form method="POST" autocomplete="off" action="" id="addForm">
+                        {%from "_macro.html" import render_field%}
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-md-4">
+                                    <label>Codigo</label>
+                                </div>
+                                <div class="col-md-8">
+                                    {{render_field(form1.id, class="form-control", required = "true")}}
+                                </div>
+                            </div>    
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-md-4">
+                                    <label>Nombre Producto</label>
+                                </div>
+                                <div class="col-md-8">
+                                    {{render_field(form1.name, class="form-control", required = "true")}}
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-md-4">
+                                    <label>Cantidad</label>
+                                </div>
+                                <div class="col-md-8">
+                                    {{render_field(form1.quantity, class="form-control")}}
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-md-4">
+                                    <label>Importe</label>
+                                </div>
+                                 <div class="col-md-8">
+                                    {{render_field(form1.purchasePrice, class="form-control")}}
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-md-4">
+                                    <label>Unidad de medida</label>
+                                </div>
+                                 <div class="col-md-8" align="center">
+                                    <select name="unitm" class="form-control" required>
+                                        {% for u in unit %}
+                                            <option value="{{u.id}}">{{u.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-md-6">
+                                    
+                                </div>
+                                <div class="col-md-6" align="right">
+                                    <button  class="btn btn-default">Capturar</button>
+                                </div>
+                            </div>
+                        </form>
+        			</div>
+        			<div class="modal-footer">
+                        <div class="row" style="margin-top:10px;">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-default" data-toggle="modal"   data-dismiss="modal" data-target="#unidadesMedida">Unidades</button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                            </div>
+                        </div>
+        			</div>
+    			</div>
+			</div>
+		</div>
+		<div class="modal fade" id="buscarProducto" role="dialog" data-backdrop="static" data-keyboard="false">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+          				<h4 class="modal-title">Buscar Producto</h4>
+          				<button type="button" class="close" data-dismiss="modal">&times;</button>
+        			</div>
+        			<div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Codigo/Palabra Clave</label>
+                            </div> 
+                            <div class="col-md-6">
+                                <label class="switch">
+                                    <input type="checkbox" id="checkSearch" value="FALSE">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>   
+                        </div>
+                        <form autocomplete="off" action="/searchproducts" method="POST" id="searchForm">
+                            <div class="row">
+                                <div class="col-md-6"> 
+                                    <label id="labelSearch">Codigo</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="number"  name="id" class="form-control"  required=""/ id="inputSearch">
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-md-12" align="right"> 
+                                    <button class="btn">Buscar</button>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="row" style="margin-top:10px;">
+                            <table class="table  table-hover" id="searchTable">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Nombre</th>
+                                        <th>Importe</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bodySearchTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="messageSearch">
+                        </div>
+        			</div>
+        			<div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#unidadesMedida">Unidades</button>
+        			</div>
+    			</div>
+			</div>
+		</div>
+        <div class="modal fade" id="mostrarProductos" role="dialog" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Productos</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table  table-hover" id="productsTable">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyTable">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {%from "_macroUM.html" import uniMe%}
+        {{uniMe(unit_form)}}
+    
+    <script type="text/javascript" src="{{url_for('static', filename='js/products.js')}}"></script>
+{% endblock %}
