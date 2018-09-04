@@ -1,18 +1,3 @@
-Skip to content
-
-Search…
-All gists
-GitHub
-New gist
-@oscar7692
-0 @oscar7692oscar7692/snmpwalkV3.py
-Last active a minute ago
-
-<script src="https://gist.github.com/oscar7692/b7e913fb3169df116c1630de062affa5.js"></script>
-
- Code  Revisions 2
-snmpwalk created by oscar7692 - https://repl.it/@oscar7692/snmpwalk
- snmpwalkV3.py
 #!/ms/dist/python/PROJ/core/2.7.3-64/bin/python
 
 import argparse
@@ -50,6 +35,7 @@ parsed_args = parser.parse_args()
 default_env_path = "/ms/dist/nms/PROJ/operations_analytics_scripts/prod"
 if parsed_args.env is None: parsed_args.env = default_env_path
 sys.path.insert(1, "{}/python/lib".format(parsed_args.env))
+
 from writtingLog import writtingLog
 from yamlLoader import load_yaml
 from SplunkLib import *
@@ -160,7 +146,7 @@ def main(margs=None):
                 # finaldata = splunk_feeder.eventPush(data)
                 # print(finaldata)
 
-    #version 2 is not tested
+    # version 2 is not tested
     #     elif version == "v2":
     #         mibPath = config_data[1].get("mibPath", None)
     #         hosts = config_data[1].get("hosts", None)
@@ -182,9 +168,9 @@ def main(margs=None):
     # do something
     # for closing after error use return 1 instead of sys.exit()
 
+
 if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt as k:
         print("Forced Exit")
- @oscar7692
