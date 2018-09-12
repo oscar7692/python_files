@@ -5,14 +5,18 @@ import sys
 import subprocess
 import re
 import calendar
+import time
+import csv
 
 parser = argparse.ArgumentParser()
 """"
 Boilerplate for stand-alone script
+
 When usng the script as a program arguments can be used for global-scoped
 variables and thus they can be set outside the main function, arg 'env' is the
 perfect example.
 (i.e. a library path to add to sys.path for importing modules from it)
+
 When using the script as a module and based in our example use case, if the
 argument isn't defaulted the imports may fail, but if it's defaulted we
 wouldn't be able to override it, in such case we would have to add the desired
@@ -35,7 +39,6 @@ parsed_args = parser.parse_args()
 default_env_path = "/ms/dist/nms/PROJ/operations_analytics_scripts/prod"
 if parsed_args.env is None: parsed_args.env = default_env_path
 sys.path.insert(1, "{}/python/lib".format(parsed_args.env))
-
 from writtingLog import writtingLog
 from yamlLoader import load_yaml
 from SplunkLib import *
@@ -47,6 +50,7 @@ the conduct through which we will pass our arguments to our local parser (which
 will inherit all the arguments from our global one), keeping in mind that
 those arguments intened for global use will not change if we try to set them
 through margs.
+
 When using the script as a program, the bottom code snippet starting at
 'if __name__ == "__main__":' will execute, passing no arguments to main and thus
 causing it to take them from sys.argv (which is the same place the global parser
@@ -59,6 +63,8 @@ were passed, causing only defaulted args from the global parser to be
 initialized.
 """
 
+
+# --------------------------- main definition ----------------------------------
 def main(margs=None):
     """
     The following 'if' statement is in charge of defaulting to sys.argv when no
@@ -82,7 +88,7 @@ def main(margs=None):
 
         config_data = load_yaml(conf_file)
         if conf_file is None:
-            print ("invalid configuration file please validate")
+            print("invalid configuration file please validate")
             return 1
         else:
             # loading data from yaml file
@@ -92,6 +98,7 @@ def main(margs=None):
             scvCommunity = config_data[1].get("scvCommunity", None)
             scvUrl = config_data[1].get("scvUrl", None)
             version = config_data[1].get("version", None)
+
         if version == "v3":
             username = config_data[1].get("username", None)
             securityLevel = config_data[1].get("securityLevel", None)
@@ -101,72 +108,119 @@ def main(margs=None):
             privProtocol = config_data[1].get("privProtocol", None)
             mibPath = config_data[1].get("mibPath", None)
             hosts = config_data[1].get("hosts", None)
+            oids = config_data[1].get("oids", None)
+            tables = config_data[1].get("tables", None)
 
+# --------------------------- snmpwalk version 3 -------------------------------
             for host in hosts:
-                snmpV3cmd = "snmpwalk -{} -Os -u {} -l {} -a {} -A {} -X {} " \
-                            "-x {} -OQ -Oa -M {} -m ALL {}".format(version,
-                                                                  username,
-                                                                  securityLevel,
-                                                                  authProtocol,
-                                                                  passPhrase,
-                                                                  passPhraseProtocol,
-                                                                  privProtocol,
-                                                                  mibPath,
-                                                                  host)
-                print(snmpV3cmd)
-                try:
-                    output = subprocess.check_output(snmpV3cmd,
-                                                     stderr=subprocess.PIPE,
-                                                     shell=True).strip()
-                except:
-                    snmperror = "Timeout occur for {}".format(host)
-                    print (snmperror)
-                    writtingLog("info", "warning {}".format(snmperror), nas + logsdir)
-                    #return 1
-                outputList = output.split("\n")
-                for formatedLine in outputList:
-                    print(formatedLine)
-                #the following section is to ingest data in splunk
-                # rex = re.compile("(?P<Description>.*?)\s=\s(?P<Value>.*?)$")
-                # dictList = [rex.search(x).groupdict()
-                #             for x in outputList if rex.search(x)]
-                # #event creator
-                # # for item in dictList:
-                # #     epoch_time = calendar.timegm(time.gmtime())
-                # #     item["timeStamp"] = epoch_time
-                # data = [{"host": host,"Description": dictList}]
-                # #print(data)
-                # #return data
-                # splunk_feeder = SplunkFeedObject(config_data[1], "p")
-                # # event_ingestion = []
-                # # # for event in data:
-                # #     # if 'attrib' in event:
-                # #     #     event['Description'] = event['attrib']
-                # # event_ingestion.append(event)
-                # finaldata = splunk_feeder.eventPush(data)
-                # print(finaldata)
+                for oid in oids:
+                    snmpV3cmd = "snmpwalk -{} -Os -u {} -l {} -a {} -A {} -X " \
+                                "{} -x {} -OQ -Oa -M {} -m ALL " \
+                                "{} {}".format(version, username, securityLevel,
+                                               authProtocol, passPhrase,
+                                               passPhraseProtocol, privProtocol,
+                                               mibPath, host, oid)
+                    print(snmpV3cmd)
+                    print("[getting snmpwalk data from {}]".format(host))
+                    try:
+                        output = subprocess.check_output(snmpV3cmd,
+                                                         stderr=subprocess.PIPE,
+                                                         shell=True).strip()
+                    except:
+                        snmperror = "Timeout occur for {}".format(host)
+                        print(snmperror)
+                        writtingLog("info", "warning {}".format(snmperror),
+                                    nas + logsdir)
+                        return 1
+                    outputList = output.split("\n")
+                    # print(outputList)
+                    rex = re.compile("(?P<Description>.*?)\s=\s(?P<Value>.*?)$")
+                    dictList = [rex.search(x).groupdict()
+                                for x in outputList if rex.search(x)]
+                    # print("-----------------------dict----------------------")
+                    # print(dictList)
+                    splunk_feeder = SplunkFeedObject(config_data[1], "p")
+                    finaldata = splunk_feeder.eventPush(dictList)
 
-    # version 2 is not tested
-    #     elif version == "v2":
-    #         mibPath = config_data[1].get("mibPath", None)
-    #         hosts = config_data[1].get("hosts", None)
-    #         for host in hosts:
-    #             snmpV2cmd = "snmpwalk -{} -c {} {} -M {} -m ALL".format(version,
-    #                                                                     scvCommunity,
-    #                                                                     host,
-    #                                                                     mibPath)
-    #             try:
-    #                 output = subprocess.check_output(snmpV2cmd,
-    #                                                  stderr=subprocess.PIPE,
-    #                                                  shell=True).strip()
-    #             except:
-    #                 snmperror = "Timeout occur for {}".format(host)
-    #                 print (snmperror)
-    #                 writtingLog("warning {}".format(snmperror), logsdir)
-    #                 return 1
-    #             outputList = output.split("\n")
-    # do something
-    # for closing after error use return 1 instead of sys.exit()
+# -------------------------- snmptable version 3 -------------------------------
+            for host in hosts:
+                for table in tables:
+                    snmpV3tab = "snmptable -{} -Os -u {} -l {} -a {} -A {} -X "\
+                                "{} -x {} -OQ -Oa -M {} -m ALL -Cf '|' -L n " \
+                                "-OU {} {}".format(version, username,
+                                                   securityLevel, authProtocol,
+                                                   passPhrase,
+                                                   passPhraseProtocol,
+                                                   privProtocol, mibPath, host,
+                                                   table)
+                    print(snmpV3tab)
+                    print("[getting snmptable data from {}]".format(host))
+                    try:
+                        output_table = subprocess.check_output(snmpV3tab,
+                                                               stderr=subprocess.PIPE,
+                                                               shell=True).strip()
+                    except:
+                        snmperror = "Timeout occur for {}".format(host)
+                        print(snmperror)
+                        writtingLog("info", "warning {}".format(snmperror),
+                                    nas + logsdir)
+                        return 1
+                    outputList2 = output_table.split("\n")
+                    output_sample = outputList2[2:]
+                    reader = csv.DictReader(output_sample, delimiter='|')
+                    d1 = [x for x in reader]
+                    lista = []
+                    for x in d1:
+                        desc = x.keys()
+                        val = x.values()
+                        for y in desc:
+                            for valor in val:
+                                cadena = y + " = " + valor
+                                lista.append(cadena)
+                    rex = re.compile(
+                        "(?P<Description>.*?)=(?P<Type>.*?):(?P<Value>.*?)$")
+                    list2 = [rex.search(x).groupdict()
+                             for x in lista if rex.search(x)]
+                    splunk_feeder2 = SplunkFeedObject(config_data[1], "p")
+                    finaldata = splunk_feeder2.eventPush(list2)
+
+# --------------------------- first table attempt ------------------------------
+# print(outputList2)
+# header = outputList2[2:][0]
+# values_list = list()
+# cont = 0
+# for values in outputList2[3:]:
+#     values_list.insert(cont, values)
+#     cont = cont + 1
+# list2 = [header, values_list]
+# print(list2)
+# key = header.split("|")
+# for value in values_list:
+#     values = value.split("|")
+#
+# print(len(key))
+# print(len(values))
+# --------------------------- snmpwalk version 2 -------------------------------
+#     elif version == "v2":
+#         mibPath = config_data[1].get("mibPath", None)
+#         hosts = config_data[1].get("hosts", None)
+#         for host in hosts:
+#             snmpV2cmd = "snmpwalk -{} -c {} {} -M {} -m ALL".format(version,
+#                                                                     scvCommunity,
+#                                                                     host,
+#                                                                     mibPath)
+#             try:
+#                 output = subprocess.check_output(snmpV2cmd,
+#                                                  stderr=subprocess.PIPE,
+#                                                  shell=True).strip()
+#             except:
+#                 snmperror = "Timeout occur for {}".format(host)
+#                 print(snmperror)
+#                 writtingLog("warning {}".format(snmperror), logsdir)
+#                 return 1
+#             outputList = output.split("\n")
+# do something
+# for closing after error use return 1 instead of sys.exit()
 
 
 if __name__ == "__main__":
