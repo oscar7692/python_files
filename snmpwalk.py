@@ -1,4 +1,4 @@
-#!/ms/dist/python/PROJ/core/2.7.3-64/bin/python
+#/bin/python
 
 import argparse
 import sys
