@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/ms/dist/python/PROJ/core/2.7.3-64/bin/python
 
 import argparse
 import sys
@@ -7,6 +7,7 @@ import re
 import calendar
 import time
 import csv
+
 
 parser = argparse.ArgumentParser()
 """"
@@ -63,7 +64,6 @@ were passed, causing only defaulted args from the global parser to be
 initialized.
 """
 
-
 # --------------------------- main definition ----------------------------------
 def main(margs=None):
     """
@@ -98,7 +98,7 @@ def main(margs=None):
             scvCommunity = config_data[1].get("scvCommunity", None)
             scvUrl = config_data[1].get("scvUrl", None)
             version = config_data[1].get("version", None)
-
+            
         if version == "v3":
             username = config_data[1].get("username", None)
             securityLevel = config_data[1].get("securityLevel", None)
@@ -110,8 +110,8 @@ def main(margs=None):
             hosts = config_data[1].get("hosts", None)
             oids = config_data[1].get("oids", None)
             tables = config_data[1].get("tables", None)
-
-# --------------------------- snmpwalk version 3 -------------------------------
+            
+# --------------------------- snmpwalk version 3 -------------------------------         
             for host in hosts:
                 for oid in oids:
                     snmpV3cmd = "snmpwalk -{} -Os -u {} -l {} -a {} -A {} -X " \
@@ -137,17 +137,18 @@ def main(margs=None):
                     rex = re.compile("(?P<Description>.*?)\s=\s(?P<Value>.*?)$")
                     dictList = [rex.search(x).groupdict()
                                 for x in outputList if rex.search(x)]
-                    # print("-----------------------dict----------------------")
-                    # print(dictList)
+                    for out in dictList:
+                         out["dataType"] = "snmpWalk"
+                         out["principal_oid"] = oid
                     splunk_feeder = SplunkFeedObject(config_data[1], "p")
                     finaldata = splunk_feeder.eventPush(dictList)
-
-# -------------------------- snmptable version 3 -------------------------------
-            for host in hosts:
+                    
+# -------------------------- snmptable version 3 -------------------------------                  
+            for host in hosts:            
                 for table in tables:
                     snmpV3tab = "snmptable -{} -Os -u {} -l {} -a {} -A {} -X "\
-                                "{} -x {} -OQ -Oa -M {} -m ALL -Cf '|' -L n " \
-                                "-OU {} {}".format(version, username,
+                                "{} -x {} -OQ -Oa -M {} -m ALL -Ci -Oq -Cf '|' -L n"\
+                                " -OU {} {}".format(version, username,
                                                    securityLevel, authProtocol,
                                                    passPhrase,
                                                    passPhraseProtocol,
@@ -157,8 +158,8 @@ def main(margs=None):
                     print("[getting snmptable data from {}]".format(host))
                     try:
                         output_table = subprocess.check_output(snmpV3tab,
-                                                               stderr=subprocess.PIPE,
-                                                               shell=True).strip()
+                                                         stderr=subprocess.PIPE,
+                                                         shell=True).strip()
                     except:
                         snmperror = "Timeout occur for {}".format(host)
                         print(snmperror)
@@ -166,23 +167,29 @@ def main(margs=None):
                                     nas + logsdir)
                         return 1
                     outputList2 = output_table.split("\n")
-                    output_sample = outputList2[2:]
-                    reader = csv.DictReader(output_sample, delimiter='|')
-                    d1 = [x for x in reader]
-                    lista = []
-                    for x in d1:
-                        desc = x.keys()
-                        val = x.values()
-                        for y in desc:
-                            for valor in val:
-                                cadena = y + " = " + valor
-                                lista.append(cadena)
-                    rex = re.compile(
-                        "(?P<Description>.*?)=(?P<Type>.*?):(?P<Value>.*?)$")
-                    list2 = [rex.search(x).groupdict()
-                             for x in lista if rex.search(x)]
+                    headerlist = outputList2[2].split("|")
+                    # print(headerlist)
+                    output_sample = outputList2[3:]
+                    reader = csv.DictReader(output_sample, delimiter='|',
+                                            fieldnames=headerlist)      
+                    eventlist =[x for x in reader]
+                    for x in eventlist:
+                        x["dataType"] = "snmpTable"
+                        x["principal_table"] = table
+                    # print(headerlist)
+                    # print(eventlist)
+                    # # for x in d1:
+                    # #     desc = x.keys()
+                    # #     val = x.values()
+                    # #     for y in desc:
+                    # #         for valor in val:
+                    # #             cadena = y + " = " + valor
+                    # #             lista.append(cadena)
+                    # # rex = re.compile("(?P<Description>.*?)=(?P<Type>.*?):(?P<Value>.*?)$")                  
+                    # # list2 = [rex.search(x).groupdict()
+                    # #             for x in lista if rex.search(x)]
                     splunk_feeder2 = SplunkFeedObject(config_data[1], "p")
-                    finaldata = splunk_feeder2.eventPush(list2)
+                    finaldata = splunk_feeder2.eventPush(eventlist)                  
 
 # --------------------------- first table attempt ------------------------------
 # print(outputList2)
@@ -197,7 +204,7 @@ def main(margs=None):
 # key = header.split("|")
 # for value in values_list:
 #     values = value.split("|")
-#
+#     
 # print(len(key))
 # print(len(values))
 # --------------------------- snmpwalk version 2 -------------------------------
@@ -222,9 +229,9 @@ def main(margs=None):
 # do something
 # for closing after error use return 1 instead of sys.exit()
 
-
 if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt as k:
         print("Forced Exit")
+        
