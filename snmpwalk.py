@@ -38,8 +38,11 @@ parser.add_argument("-c", "--config", help="path of configuration file (YAML "
 parsed_args = parser.parse_args()
 
 default_env_path = "/ms/dist/nms/PROJ/operations_analytics_scripts/prod"
-if parsed_args.env is None: parsed_args.env = default_env_path
+if parsed_args.env is None:
+    parsed_args.env = default_env_path
+    
 sys.path.insert(1, "{}/python/lib".format(parsed_args.env))
+
 from writtingLog import writtingLog
 from yamlLoader import load_yaml
 from SplunkLib import *
@@ -61,8 +64,8 @@ When using the script as a module, the arguments will then be passed to main
 through 'margs', the local parser will act upon them and output a namespace
 called 'parsed_margs' whereas the global parser will operate as if no arguments
 were passed, causing only defaulted args from the global parser to be
-initialized.
-"""
+initialized."""
+
 
 # --------------------------- main definition ----------------------------------
 def main(margs=None):
@@ -94,19 +97,20 @@ def main(margs=None):
             # loading data from yaml file
             logsdir = config_data[1].get("logsdir", None)
             nas = config_data[1].get("NAS", None)
-            scvNamespace = config_data[1].get("scvNamespace", None)
-            scvCommunity = config_data[1].get("scvCommunity", None)
-            scvUrl = config_data[1].get("scvUrl", None)
+            scv_namespace = config_data[1].get("scvNamespace", None)
+            scv_community = config_data[1].get("scvCommunity", None)
+            scv_url = config_data[1].get("scvUrl", None)
             version = config_data[1].get("version", None)
             
         if version == "v3":
             username = config_data[1].get("username", None)
-            securityLevel = config_data[1].get("securityLevel", None)
-            authProtocol = config_data[1].get("authProtocol", None)
-            passPhrase = config_data[1].get("passPhrase", None)
-            passPhraseProtocol = config_data[1].get("passPhraseProtocol", None)
-            privProtocol = config_data[1].get("privProtocol", None)
-            mibPath = config_data[1].get("mibPath", None)
+            security_level = config_data[1].get("securityLevel", None)
+            auth_protocol = config_data[1].get("authProtocol", None)
+            pass_phrase = config_data[1].get("passPhrase", None)
+            pass_phrase_protocol = config_data[1].get("passPhraseProtocol", 
+                                                      None)
+            priv_protocol = config_data[1].get("privProtocol", None)
+            mib_path = config_data[1].get("mibPath", None)
             hosts = config_data[1].get("hosts", None)
             oids = config_data[1].get("oids", None)
             tables = config_data[1].get("tables", None)
@@ -114,16 +118,18 @@ def main(margs=None):
 # --------------------------- snmpwalk version 3 -------------------------------         
             for host in hosts:
                 for oid in oids:
-                    snmpV3cmd = "snmpwalk -{} -Os -u {} -l {} -a {} -A {} -X " \
+                    snmp_v3cmd = "snmpwalk -{} -Os -u {} -l {} -a {} -A {} -X "\
                                 "{} -x {} -OQ -Oa -M {} -m ALL " \
-                                "{} {}".format(version, username, securityLevel,
-                                               authProtocol, passPhrase,
-                                               passPhraseProtocol, privProtocol,
-                                               mibPath, host, oid)
-                    print(snmpV3cmd)
+                                "{} {}".format(version, username, 
+                                               security_level,
+                                               auth_protocol, pass_phrase,
+                                               pass_phrase_protocol, 
+                                               priv_protocol,
+                                               mib_path, host, oid)
+                    print(snmp_v3cmd)
                     print("[getting snmpwalk data from {}]".format(host))
                     try:
-                        output = subprocess.check_output(snmpV3cmd,
+                        output = subprocess.check_output(snmp_v3cmd,
                                                          stderr=subprocess.PIPE,
                                                          shell=True).strip()
                     except:
@@ -132,47 +138,50 @@ def main(margs=None):
                         writtingLog("info", "warning {}".format(snmperror),
                                     nas + logsdir)
                         return 1
-                    outputList = output.split("\n")
-                    # print(outputList)
+                    output_list = output.split("\n")
+                    # print(output_list)
                     rex = re.compile("(?P<Description>.*?)\s=\s(?P<Value>.*?)$")
-                    dictList = [rex.search(x).groupdict()
-                                for x in outputList if rex.search(x)]
-                    for out in dictList:
-                         out["dataType"] = "snmpWalk"
-                         out["principal_oid"] = oid
+                    dict_list = [rex.search(x).groupdict() for x in
+                                 output_list if rex.search(x)]
+                    for out in dict_list:
+                        out["dataType"] = "snmpWalk"
+                        out["principal_oid"] = oid
                     splunk_feeder = SplunkFeedObject(config_data[1], "p")
-                    finaldata = splunk_feeder.eventPush(dictList)
+                    finaldata = splunk_feeder.eventPush(dict_list)
                     
 # -------------------------- snmptable version 3 -------------------------------                  
             for host in hosts:            
                 for table in tables:
-                    snmpV3tab = "snmptable -{} -Os -u {} -l {} -a {} -A {} -X "\
-                                "{} -x {} -OQ -Oa -M {} -m ALL -Ci -Oq -Cf '|' -L n"\
-                                " -OU {} {}".format(version, username,
-                                                   securityLevel, authProtocol,
-                                                   passPhrase,
-                                                   passPhraseProtocol,
-                                                   privProtocol, mibPath, host,
-                                                   table)
-                    print(snmpV3tab)
+                    snmp_v3tab = "snmptable -{} -Os -u {} -l {} -a {} -A {} " \
+                                 "-X {} -x {} -OQ -Oa -M {} -m ALL -Ci -Oq  " \
+                                 "-Cf '|'  -L n -OU {} {}".format(version,
+                                                                  username,
+                                                                  security_level,
+                                                                  auth_protocol,
+                                                                  pass_phrase,
+                                                                  pass_phrase_protocol,
+                                                                  priv_protocol,
+                                                                  mib_path,
+                                                                  host, table)
+                    print(snmp_v3tab)
                     print("[getting snmptable data from {}]".format(host))
                     try:
-                        output_table = subprocess.check_output(snmpV3tab,
-                                                         stderr=subprocess.PIPE,
-                                                         shell=True).strip()
+                        output_table = subprocess.check_output(snmp_v3tab, 
+                                                               stderr=subprocess.PIPE,
+                                                               shell=True).strip()
                     except:
                         snmperror = "Timeout occur for {}".format(host)
                         print(snmperror)
                         writtingLog("info", "warning {}".format(snmperror),
                                     nas + logsdir)
                         return 1
-                    outputList2 = output_table.split("\n")
-                    headerlist = outputList2[2].split("|")
+                    output_list2 = output_table.split("\n")
+                    headerlist = output_list2[2].split("|")
                     # print(headerlist)
-                    output_sample = outputList2[3:]
+                    output_sample = output_list2[3:]
                     reader = csv.DictReader(output_sample, delimiter='|',
                                             fieldnames=headerlist)      
-                    eventlist =[x for x in reader]
+                    eventlist = [x for x in reader]
                     for x in eventlist:
                         x["dataType"] = "snmpTable"
                         x["principal_table"] = table
@@ -192,11 +201,11 @@ def main(margs=None):
                     finaldata = splunk_feeder2.eventPush(eventlist)                  
 
 # --------------------------- first table attempt ------------------------------
-# print(outputList2)
-# header = outputList2[2:][0]
+# print(output_list2)
+# header = output_list2[2:][0]
 # values_list = list()
 # cont = 0
-# for values in outputList2[3:]:
+# for values in output_list2[3:]:
 #     values_list.insert(cont, values)
 #     cont = cont + 1
 # list2 = [header, values_list]
@@ -225,13 +234,13 @@ def main(margs=None):
 #                 print(snmperror)
 #                 writtingLog("warning {}".format(snmperror), logsdir)
 #                 return 1
-#             outputList = output.split("\n")
+#             output_list = output.split("\n")
 # do something
 # for closing after error use return 1 instead of sys.exit()
+
 
 if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt as k:
         print("Forced Exit")
-        
