@@ -7,7 +7,7 @@ RANK = '23456789TJQKA'
 DECK = tuple(''.join(card) for card in itertools.product(RANK, SUIT))
 VAL = []
 for a in range(9):
-    VAL += [a+2] * 4
+    VAL += [a + 2] * 4
 for _ in range(3):
     VAL += [10] * 4
 VAL += [1] * 4
