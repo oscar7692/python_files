@@ -18,3 +18,4 @@ print c**2
 print float(c)/a
 #   modulo
 print 7%3
+
