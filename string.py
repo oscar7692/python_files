@@ -17,4 +17,4 @@ print c**2
 #   divicion
 print float(c)/a
 #   modulo
-print 7%3
+print 7 % 3

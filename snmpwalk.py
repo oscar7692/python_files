@@ -1,5 +1,9 @@
-#!/ms/dist/python/PROJ/core/2.7.3-64/bin/python
+#!/ms/dist/python/PROJ/core/2.7.3-64/bin/python or /usr/bin/python
 
+from ScvLib import *
+from SplunkLib import *
+from yamlLoader import load_yaml
+from writtingLog import writtingLog
 import argparse
 import sys
 import subprocess
@@ -40,13 +44,9 @@ parsed_args = parser.parse_args()
 default_env_path = "/ms/dist/nms/PROJ/operations_analytics_scripts/prod"
 if parsed_args.env is None:
     parsed_args.env = default_env_path
-    
+
 sys.path.insert(1, "{}/python/lib".format(parsed_args.env))
 
-from writtingLog import writtingLog
-from yamlLoader import load_yaml
-from SplunkLib import *
-from ScvLib import *
 
 """
 The main function is defined with a None-defaulted argument 'margs' which is
@@ -101,31 +101,31 @@ def main(margs=None):
             scv_community = config_data[1].get("scvCommunity", None)
             scv_url = config_data[1].get("scvUrl", None)
             version = config_data[1].get("version", None)
-            
+
         if version == "v3":
             username = config_data[1].get("username", None)
             security_level = config_data[1].get("securityLevel", None)
             auth_protocol = config_data[1].get("authProtocol", None)
             pass_phrase = config_data[1].get("passPhrase", None)
-            pass_phrase_protocol = config_data[1].get("passPhraseProtocol", 
+            pass_phrase_protocol = config_data[1].get("passPhraseProtocol",
                                                       None)
             priv_protocol = config_data[1].get("privProtocol", None)
             mib_path = config_data[1].get("mibPath", None)
             hosts = config_data[1].get("hosts", None)
             oids = config_data[1].get("oids", None)
             tables = config_data[1].get("tables", None)
-            
-# --------------------------- snmpwalk version 3 -------------------------------         
+
+# --------------------------- snmpwalk version 3 -------------------------------
             for host in hosts:
                 for oid in oids:
                     snmp_v3cmd = "snmpwalk -{} -Os -u {} -l {} -a {} -A {} -X "\
-                                "{} -x {} -OQ -Oa -M {} -m ALL " \
-                                "{} {}".format(version, username, 
-                                               security_level,
-                                               auth_protocol, pass_phrase,
-                                               pass_phrase_protocol, 
-                                               priv_protocol,
-                                               mib_path, host, oid)
+                        "{} -x {} -OQ -Oa -M {} -m ALL " \
+                        "{} {}".format(version, username,
+                                       security_level,
+                                       auth_protocol, pass_phrase,
+                                       pass_phrase_protocol,
+                                       priv_protocol,
+                                       mib_path, host, oid)
                     print(snmp_v3cmd)
                     print("[getting snmpwalk data from {}]".format(host))
                     try:
@@ -148,9 +148,9 @@ def main(margs=None):
                         out["principal_oid"] = oid
                     splunk_feeder = SplunkFeedObject(config_data[1], "p")
                     finaldata = splunk_feeder.eventPush(dict_list)
-                    
-# -------------------------- snmptable version 3 -------------------------------                  
-            for host in hosts:            
+
+# -------------------------- snmptable version 3 -------------------------------
+            for host in hosts:
                 for table in tables:
                     snmp_v3tab = "snmptable -{} -Os -u {} -l {} -a {} -A {} " \
                                  "-X {} -x {} -OQ -Oa -M {} -m ALL -Ci -Oq  " \
@@ -166,7 +166,7 @@ def main(margs=None):
                     print(snmp_v3tab)
                     print("[getting snmptable data from {}]".format(host))
                     try:
-                        output_table = subprocess.check_output(snmp_v3tab, 
+                        output_table = subprocess.check_output(snmp_v3tab,
                                                                stderr=subprocess.PIPE,
                                                                shell=True).strip()
                     except:
@@ -180,7 +180,7 @@ def main(margs=None):
                     # print(headerlist)
                     output_sample = output_list2[3:]
                     reader = csv.DictReader(output_sample, delimiter='|',
-                                            fieldnames=headerlist)      
+                                            fieldnames=headerlist)
                     eventlist = [x for x in reader]
                     for x in eventlist:
                         x["dataType"] = "snmpTable"
@@ -194,11 +194,11 @@ def main(margs=None):
                     # #         for valor in val:
                     # #             cadena = y + " = " + valor
                     # #             lista.append(cadena)
-                    # # rex = re.compile("(?P<Description>.*?)=(?P<Type>.*?):(?P<Value>.*?)$")                  
+                    # # rex = re.compile("(?P<Description>.*?)=(?P<Type>.*?):(?P<Value>.*?)$")
                     # # list2 = [rex.search(x).groupdict()
                     # #             for x in lista if rex.search(x)]
                     splunk_feeder2 = SplunkFeedObject(config_data[1], "p")
-                    finaldata = splunk_feeder2.eventPush(eventlist)                  
+                    finaldata = splunk_feeder2.eventPush(eventlist)
 
 # --------------------------- first table attempt ------------------------------
 # print(output_list2)
@@ -213,7 +213,7 @@ def main(margs=None):
 # key = header.split("|")
 # for value in values_list:
 #     values = value.split("|")
-#     
+#
 # print(len(key))
 # print(len(values))
 # --------------------------- snmpwalk version 2 -------------------------------
