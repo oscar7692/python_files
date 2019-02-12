@@ -1,3 +1,5 @@
+#!/usr/bin/python3.6
+
 def menu():
 
     print('******Directorio de Contactos******')

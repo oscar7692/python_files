@@ -19,8 +19,8 @@ class NQueens:
     def put_queen(self, positions, target_row):
         """
         Try to place a queen on target_row by checking all N possible cases.
-        If a valid place is found the function calls itself trying to place a queen
-        on the next row until all N queens are placed on the NxN board.
+        If a valid place is found the function calls itself trying to place a
+        queen on the next row until all N queens are placed on the NxN board.
         """
         # Base (stop) case - all N rows are occupied
         if target_row == self.size:
@@ -64,7 +64,8 @@ class NQueens:
     def show_short_board(self, positions):
         """
         Show the queens positions on the board in compressed form,
-        each number represent the occupied column position in the corresponding row.
+        each number represent the occupied column position in the corresponding
+        row.
         """
         line = ""
         for i in range(self.size):
