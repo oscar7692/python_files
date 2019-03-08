@@ -21,7 +21,7 @@ class Project:
         opc = True
 
         while ans:
-            print("""selecione la opcion que desea usar '1..5', escriba exit o 
+            print("""selecione la opcion que desea usar '1..5', escriba exit o
             precione '6' para salir del sistema.\n\n\a
             1-\t consultar residentes
             2-\t consultar visitantes
@@ -81,7 +81,7 @@ class Project:
                         time.sleep(2.5)
                         os.system('clear')
                         break
-                        
+
                     else:
                         print("ingrese una opcion valida, presione enter para "
                               "continuar...")
@@ -93,7 +93,7 @@ class Project:
                 os.system('clear')
 
                 while opc:
-                    print("""\n\t Seccion de visitantes\n\tingrese la opcion 
+                    print("""\n\t Seccion de visitantes\n\tingrese la opcion
                     que desea '1..4'\n\n
                     1-\t agregar registro
                     2-\t borrar registro
@@ -124,7 +124,7 @@ class Project:
 
                 os.system('clear')
                 while opc:
-                    print("""\n\t Seccion de guardias\n\tingrese la opcion 
+                    print("""\n\t Seccion de guardias\n\tingrese la opcion
                     que desea '1..4'\n\n
                     1-\t agregar registro
                     2-\t borrar registro
@@ -154,7 +154,7 @@ class Project:
             elif ans == "4":
                 os.system('clear')
                 while opc:
-                    print("""\n\t Seccion de puertas\n\tingrese la opcion que 
+                    print("""\n\t Seccion de puertas\n\tingrese la opcion que
                     desea '1..4'\n\n
                     1-\t agregar registro
                     2-\t borrar registro
@@ -185,7 +185,7 @@ class Project:
 
                 os.system('clear')
                 while opc:
-                    print("""\n\t Seccion de actividades\n\tingrese la opcion 
+                    print("""\n\t Seccion de actividades\n\tingrese la opcion
                     que desea '1..4'\n\n
                     1-\t agregar registro
                     2-\t borrar registro
