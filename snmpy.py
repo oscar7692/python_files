@@ -1,4 +1,4 @@
-#!/ms/dist/python/PROJ/core/2.7.3-64/bin/python
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 from ScvLib import *
@@ -144,11 +144,11 @@ def main(margs=None):
                                     for x in outputList if rex.search(x)]
                         # for statement ingest the labels datatype and principal
                         for out in dictList:
-                             out["dataType"] = "snmpWalk"
-                             out["principal_oid"] = oid
-                             host = host.split(".")
-                             host = host[0]
-                             out["hostname"] = host
+                            out["dataType"] = "snmpWalk"
+                            out["principal_oid"] = oid
+                            host = host.split(".")
+                            host = host[0]
+                            out["hostname"] = host
                         """ ingest the data in splunk """
                         # print(dictList)
                         splunk_feeder = SplunkFeedObject(config_data[1], "p")
@@ -206,9 +206,9 @@ def main(margs=None):
         elif version == "v2":
             if splunk is not None:
                 splunk_host = re.search('(?P<prot>^http\:\/\/)\w*?(?P<host>'
-                                        '\w+[^:/]+)', 'http://ivapp1132449.'
-                                        'devin1.ms.com:9090/en-US/app/launcher'
-                                        '/home')
+                                        '\w+[^:/]+)',
+                                        'http://ivapp1132449.devin1.ms.com:'
+                                        '9090/en-US/app/launcher/home')
                 splunk_host = splunk_host.group(2)
                 splunk_val = "ping -c 3 {}".format(splunk_host)
                 try:
@@ -254,11 +254,11 @@ def main(margs=None):
                             for x in outputList if rex.search(x)]
                 # for statement ingest the labels datatype and principal
                 for out in dictList:
-                     out["dataType"] = "snmpWalk"
-                     out["principal_oid"] = oid
-                     host = host.split(".")
-                     host = host[0]
-                     out["hostname"] = host
+                    out["dataType"] = "snmpWalk"
+                    out["principal_oid"] = oid
+                    host = host.split(".")
+                    host = host[0]
+                    out["hostname"] = host
                 """ ingest the data in splunk """
                 # print(dictList)
                 splunk_feeder = SplunkFeedObject(config_data[1], "p")
