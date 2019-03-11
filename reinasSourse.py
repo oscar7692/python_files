@@ -2,6 +2,7 @@
 #       algoritmo de las reinas         #
 #########################################
 
+
 class NQueens:
     """Generate all valid solutions for the n queens puzzle"""
     def __init__(self, size):
@@ -35,17 +36,15 @@ class NQueens:
                     positions[target_row] = column
                     self.put_queen(positions, target_row + 1)
 
-
     def check_place(self, positions, ocuppied_rows, column):
         """
         Check if a given position is under attack from any of
         the previously placed queens (check column and diagonal positions)
         """
         for i in range(ocuppied_rows):
-            if positions[i] == column or \
-                positions[i] - i == column - ocuppied_rows or \
-                positions[i] + i == column + ocuppied_rows:
-
+            if (positions[i] == column or
+                positions[i] - i == column - ocuppied_rows or
+                positions[i] + i == column + ocuppied_rows):
                 return False
         return True
 
@@ -71,6 +70,7 @@ class NQueens:
         for i in range(self.size):
             line += str(positions[i]) + " "
         print(line)
+
 
 def main():
     """Initialize and solve the n queens puzzle"""
