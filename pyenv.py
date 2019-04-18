@@ -1,13 +1,11 @@
-#!/usr/bin/python3.6
+#!/usr/bin/python3.7
 # -*- coding: utf-8 -*-
 
 import argparse
-import ms.version
-ms.version.addpkg("ms.modulecmd", "1.0.6")
-import ms.modulecmd as modl
 import os
 import sys
 import time
+import traceback
 
 
 __author__ = "oscar pulido"
@@ -41,9 +39,6 @@ def main(margs=None):
     venvname = parsed_margs.name
     venvdir = parsed_margs.directory
     reqfile = parsed_margs.requirements
-    py34 = "python/core/3.4.4"
-    py27 = "python/core/2.7.3-64"
-    qa = "python/msdlenv/qa"
     spacecmd = "echo -e '\n'"
     if parsed_margs.requirements is None:
         os.chdir(venvdir)
@@ -85,7 +80,7 @@ def main(margs=None):
             traceback.print_exc()
         time.sleep(5)
         modl.load("python/msdlenv/qa")
-        time.sleep(3)        
+        time.sleep(3)
         module_inst = "{}_modules_installer.sh".format(venvname)
         with open(reqfile, 'r') as modfile:
             newmods = modfile.read()
